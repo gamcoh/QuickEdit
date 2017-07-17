@@ -107,6 +107,8 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 		if 'line-' in href:
 			self.view.run_command('goto_line', args={'line': href.split('-')[1]})
 			self.view.erase_phantoms("quick_edit")
+		elif href == 'close':
+			self.view.erase_phantoms('quick_edit')
 
 
 
