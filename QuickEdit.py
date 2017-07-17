@@ -23,7 +23,9 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 
 		# first for all the class names
 		className = re.findall('class="(.*?)"', firstTag)[0].split(' ')
-		idName = re.findall('id="(.*?)"', firstTag)[0]
+		idName = re.findall('id="(.*?)"', firstTag)
+		if idName:
+			idName = idName[0]
 
 		# first of all we search if the file contains 
 		# a style tag with attributs in it
@@ -75,8 +77,6 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 	def formatCode(self):
 		reportHtml=""
 		for code in self.stylesFound:
-			print(code)
-
 			# adding the file name
 			if code['file'] == 'self':
 				reportHtml += '<p class="files"><em>in this file</em>, at line : <a href="line-{line}">{line}</a></p>'.format(line=code['line'])
@@ -84,6 +84,9 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 				reportHtml += '<p class="files"><em>in %s</em></p>' % (code['file'])
 
 			reportHtml += code['code']
+
+		if not reportHtml:
+			return False
 
 		# reportHtml = reportHtml.replace(";", ";</")
 		reportHtml = re.sub(r'\n|\t', '', reportHtml)

@@ -12,13 +12,13 @@
                 "children":
                 [
                     {
-                        "caption": "Kit Checker",
+                        "caption": "QuickEdit",
                         "children":
                         [
                             {
                                 "command": "open_file", "args":
                                 {
-                                    "file": "${packages}/KitChecker/KitChecker.sublime-settings"
+                                    "file": "${packages}/QuickEdit/QuickEdit.sublime-settings"
                                 },
                                 "caption": "Settings – Default"
                             },
