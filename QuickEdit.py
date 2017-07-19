@@ -9,8 +9,6 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 
 		# getting the current line 
 		curLine    = self.view.sel()[0]
-		# print(self.view.substr(self.view.word(curLine[0].a))); return
-
 		curLine    = self.view.line(curLine)
 		curLineTxt = self.view.substr(curLine)
 		
@@ -76,6 +74,10 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 		self.formatCode()
 
 
+	########################################################################
+	# format the css code in order to show 
+	# it in a phantom report modal
+	########################################################################
 	def formatCode(self):
 		reportHtml=""
 		for code in self.stylesFound:
@@ -90,7 +92,8 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 		if not reportHtml:
 			return False
 
-		# reportHtml = reportHtml.replace(";", ";</")
+		# put minihtml tag and class name 
+		# in order to stylize the css
 		reportHtml = re.sub(r'\n|\t', '', reportHtml)
 		reportHtml = re.sub(r'([a-zA-Z0-9_. ]+) {', '<p class="className">\g<1> <b>{</b></p>', reportHtml)
 		reportHtml = re.sub(r'}', '<p class="className"><b>}</b></p>', reportHtml)
@@ -106,9 +109,11 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 
 	# when the user click on one of the phantom action
 	def click(self, href):
+		# if the user click on a line, we use the goto function
 		if 'line-' in href:
 			self.view.run_command('goto_line', args={'line': href.split('-')[1]})
 			self.view.erase_phantoms("quick_edit")
+		# closing the phantom
 		elif href == 'close':
 			self.view.erase_phantoms('quick_edit')
 
