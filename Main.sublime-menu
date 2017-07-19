@@ -18,9 +18,16 @@
                             {
                                 "command": "open_file", "args":
                                 {
-                                    "file": "${packages}/QuickEdit/QuickEdit.sublime-settings"
+                                    "file": "${packages}/QuickEdit/Default (OSX).sublime-keymap"
                                 },
-                                "caption": "Settings – Default"
+                                "caption": "Key Binding – Mac OSX"
+                            },
+                            {
+                                "command": "open_file", "args":
+                                {
+                                    "file": "${packages}/QuickEdit/Default.sublime-keymap"
+                                },
+                                "caption": "Key Binding - Default"
                             },
                         ]
                     }
