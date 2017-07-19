@@ -33,10 +33,10 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 		
 		# we search for links about style sheet css code
 		# in this project
-		internCssLinks = self.view.find_all('<link[^>]+ href="(?!http).*?".*?>')
+		internCssLinks = self.view.find_all('<link[^>]+ href="(?!http).*?\.css".*?>')
 		
 		# searching for external links
-		externCssLinks = self.view.find_all('<link[^>]+ href="http.*?".*?>')
+		externCssLinks = self.view.find_all('<link[^>]+ href="http.*?\.css".*?>')
 
 		# init
 		self.stylesFound = []
