@@ -2,7 +2,6 @@ import sublime
 import sublime_plugin
 
 import re
-import os
 
 class QuickEditCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
@@ -60,12 +59,16 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 			for code in codeFiles:
 				file = code
 				cwd = sublime.active_window().folders()[-1]
-				code = open(cwd+'/'+code).read()
+				try:
+					with open(cwd + '/' + code) as link_file:
+						code = link_file.read()
+				except FileNotFoundError as e:
+					print(e)
 				# for every class name found for this tag
 				# we are gonna found the correspondant attributs
 				if className:
 					for c in className:
-						cssCodes = re.findall('(?s).%s {.*?}' % c, code)
+						cssCodes = re.findall('(?s).%s\s?{.*?}' % c, code)
 						if cssCodes:
 							for css in cssCodes:
 								self.stylesFound.append({'code': css, 'file': file})
@@ -99,8 +102,14 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 		reportHtml = re.sub(r'}', '<p class="className"><b>}</b></p>', reportHtml)
 		reportHtml = re.sub(r'([a-zA-Z_-]+): ([a-zA-Z0-9_-]+);', '<p class="attributs"><em>\g<1></em>: <b>\g<2></b>;</p>', reportHtml)
 
+		# load the font
+		settings = sublime.load_settings('Preferences.sublime-settings')
+		font = ''
+		if settings.has('font_face'):
+			font = '"%s",' % settings.get('font_face')
+
 		# load css, and html ui
-		css = sublime.load_resource('Packages/QuickEdit/resources/ui.css')
+		css = sublime.load_resource('Packages/QuickEdit/resources/ui.css').replace('@@font', font)
 		html = sublime.load_resource('Packages/QuickEdit/resources/report.html').format(css=css, html=reportHtml)
 
 		self.view.erase_phantoms('quick_edit')
