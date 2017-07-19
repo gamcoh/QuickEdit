@@ -9,6 +9,8 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 
 		# getting the current line 
 		curLine    = self.view.sel()[0]
+		# print(self.view.substr(self.view.word(curLine[0].a))); return
+
 		curLine    = self.view.line(curLine)
 		curLineTxt = self.view.substr(curLine)
 		

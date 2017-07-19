@@ -395,6 +395,7 @@ div.quick_edit {
   border: 3px solid #eee;
   border-radius: 3px;
   padding: 20px;
+  font-family: var(--font);
 }
 
 p.className {
