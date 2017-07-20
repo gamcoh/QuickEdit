@@ -2,6 +2,9 @@ import sublime
 import sublime_plugin
 
 import re
+import os
+
+# from bs4 import BeautifulSoup
 
 class QuickEditCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
@@ -12,10 +15,10 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 		curLineTxt = self.view.substr(curLine)
 		
 		# getting the first tag if the current line
-		firstTag = re.findall('^[^<]*<(.*?)>', curLineTxt)[0]
+		firstTag = re.search('^[^<]*<(.*?)>', curLineTxt).group(1)
 		
 		# search for the tag name
-		tagName = re.findall('^([a-zA-Z]+)', firstTag)[0]
+		tagName = re.search('^([a-zA-Z]+)', firstTag).group(1)
 		if not tagName:
 			self.showError('Impossible de récuperer la balise')
 			return False
@@ -47,7 +50,7 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 			# we are gonna found the correspondant attributs
 			if className:
 				for c in className:
-					cssCodes = self.view.find_all('(?s).%s {.*?}' % c)
+					cssCodes = self.view.find_all('(?s).%s\s?{.*?}' % c)
 					if cssCodes:
 						for code in cssCodes:
 							self.stylesFound.append({'code': self.view.substr(code), 'line': str(self.view.rowcol(code.a)[0] + 1), 'file': 'self'})
@@ -58,9 +61,9 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 			# loop on all the css file included
 			for code in codeFiles:
 				file = code
-				cwd = sublime.active_window().folders()[-1]
+				cwd = sublime.active_window().folders()[0]
 				try:
-					with open(cwd + '/' + code) as link_file:
+					with open(os.path.join(cwd, code)) as link_file:
 						code = link_file.read()
 				except FileNotFoundError as e:
 					print(e)
@@ -98,7 +101,7 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 		# put minihtml tag and class name 
 		# in order to stylize the css
 		reportHtml = re.sub(r'\n|\t', '', reportHtml)
-		reportHtml = re.sub(r'([a-zA-Z0-9_. ]+) {', '<p class="className">\g<1> <b>{</b></p>', reportHtml)
+		reportHtml = re.sub(r'([a-zA-Z0-9_. ]+)(\s?){', '<p class="className">\g<1>\g<2><b>{</b></p>', reportHtml)
 		reportHtml = re.sub(r'}', '<p class="className"><b>}</b></p>', reportHtml)
 		reportHtml = re.sub(r'([a-zA-Z_-]+): ([a-zA-Z0-9_-]+);', '<p class="attributs"><em>\g<1></em>: <b>\g<2></b>;</p>', reportHtml)
 
