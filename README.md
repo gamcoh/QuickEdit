@@ -16,6 +16,6 @@ To install this plugin, you have two options:
 ## Challenges
  - Make it work for IDs too
  - Show errors in the phantom (Could not load the file, Could not find the file, Could not find any css style for this class, id, or other)
- - Many files are included implicitly, we need to find some kind of autoload function that check those files too, maybe by include all the css files that are in the project, or checking if there is a header file somewhere in the project
+ - Many files are included implicitly, we need to find some kind of autoload function that check those files too, maybe by including all the css files that are in the project, or checking if there is a header file somewhere in the project
  - Know the line where we found the css styles even in another file
  - Do not include the comment css styles
