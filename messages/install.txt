@@ -1,0 +1,16 @@
+Quick Edit
+=========================
+
+About
+======
+Quick look to css style 
+
+How to Use
+==========
+super + alt + h near a class name
+
+
+Contributing
+=============
+
+All contributions are welcome. Just fork it on Github <https://github.com/gamcoh/QuickEdit> and create a pull request.
