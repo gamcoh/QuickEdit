@@ -11,7 +11,11 @@ To install this plugin, you have two options:
 ## Usage
 <kbd>super + alt + h</kbd> near a class name in order to open a frame with the corresponding css styles into it
 
-<img width="1175" alt="QuickEdit frame example" src="https://user-images.githubusercontent.com/18115514/28253184-dd46559c-6aa0-11e7-996e-5fd3bb5bdd0e.png">
+<img width="1076" alt="QuickEdit" src="https://user-images.githubusercontent.com/18115514/28502479-8864de10-6ff3-11e7-9a8e-cfa5620b38aa.png">
+
+## Settings
+- You can disable the errors report by changing to false the `show_errors` entry in the QuickEdit settings
+- You can change the font of the report by changing the `font_face` attribut in your user settings
 
 ## Challenges
  - Make it work for IDs too

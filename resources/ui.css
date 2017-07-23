@@ -401,6 +401,19 @@ p.className {
   color: #A6E22E;
   padding: 0;
   margin: 0;
+  display: inline;
+}
+p.tagName {
+  color: #F92672;
+  padding: 0;
+  margin: 0;
+  display: inline;
+}
+p.idName {
+  color: #C792EA;
+  padding: 0;
+  margin: 0;
+  display: inline;
 }
 p.className b {
   color: #FFF;
@@ -419,6 +432,9 @@ p.files {
   color: #ADABAE;
   font-size: 12px;
   margin-top: 15px;
+}
+.mt20 {
+  margin-top: 20px;
 }
 
 

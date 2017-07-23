@@ -9,6 +9,10 @@ import os
 class QuickEditCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
 
+		# init
+		self.aErrors = []
+		self.QuickEditSetting = sublime.load_settings('QuickEdit.sublime-settings')
+
 		# getting the current line 
 		curLine    = self.view.sel()[0]
 		curLine    = self.view.line(curLine)
@@ -50,7 +54,7 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 			# we are gonna found the correspondant attributs
 			if className:
 				for c in className:
-					cssCodes = self.view.find_all('(?s).%s\s?{.*?}' % c)
+					cssCodes = self.view.find_all('(?s)[#a-zA-Z0-9 _.-]*.%s\s?{.*?}' % c)
 					if cssCodes:
 						for code in cssCodes:
 							self.stylesFound.append({'code': self.view.substr(code), 'line': str(self.view.rowcol(code.a)[0] + 1), 'file': 'self'})
@@ -66,12 +70,12 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 					with open(os.path.join(cwd, code)) as link_file:
 						code = link_file.read()
 				except FileNotFoundError as e:
-					print(e)
+					self.aErrors.append('Can not find the file : ' + str(e).split(':')[1])
 				# for every class name found for this tag
 				# we are gonna found the correspondant attributs
 				if className:
 					for c in className:
-						cssCodes = re.findall('(?s).%s\s?{.*?}' % c, code)
+						cssCodes = re.findall('(?s)[#a-zA-Z0-9 _.-]*.%s\s?{.*?}' % c, code)
 						if cssCodes:
 							for css in cssCodes:
 								self.stylesFound.append({'code': css, 'file': file})
@@ -101,7 +105,17 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 		# put minihtml tag and class name 
 		# in order to stylize the css
 		reportHtml = re.sub(r'\n|\t', '', reportHtml)
-		reportHtml = re.sub(r'([a-zA-Z0-9_. ]+)(\s?){', '<p class="className">\g<1>\g<2><b>{</b></p>', reportHtml)
+
+		# found all the pre-brackets code
+		pre_brackets = re.findall(r'([#a-zA-Z0-9_. ]+)(\s?){', reportHtml)
+		for r in pre_brackets:
+			# for all the pre-brackets code we search for tag names, id,
+			# and class name in order to format them
+			formattedCode = re.sub(r'([#a-zA-Z0-9_.-]+)', '<p class="tagName">\g<1></p>', r[0])
+			formattedCode = re.sub(r'<p class="tagName">(\.[a-zA-Z0-9_.-]+)<\/p>', '<p class="className">\g<1></p>', formattedCode)
+			formattedCode = re.sub(r'<p class="tagName">(#[#a-zA-Z0-9_-]+)<\/p>', '<p class="idName">\g<1></p>', formattedCode)
+			reportHtml = re.sub(r[0], formattedCode, reportHtml)
+
 		reportHtml = re.sub(r'}', '<p class="className"><b>}</b></p>', reportHtml)
 		reportHtml = re.sub(r'([a-zA-Z_-]+): ([a-zA-Z0-9_-]+);', '<p class="attributs"><em>\g<1></em>: <b>\g<2></b>;</p>', reportHtml)
 
@@ -111,9 +125,19 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 		if settings.has('font_face'):
 			font = '"%s",' % settings.get('font_face')
 
+		# getting the errors that occured during the execution
+		htmlErrors = ''
+		if self.QuickEditSetting.get('show_errors'):
+			for e in self.aErrors:
+				htmlErrors += '<p class="error">• %s</p>' % e
+
+			# if errors were found 
+			if htmlErrors:
+				htmlErrors = '<div class="panel panel-error mt20"><div class="panel-header">Errors that occured during the search</div><div class="panel-body">{errors}</div></div>'.format(errors=htmlErrors)
+
 		# load css, and html ui
 		css = sublime.load_resource('Packages/QuickEdit/resources/ui.css').replace('@@font', font)
-		html = sublime.load_resource('Packages/QuickEdit/resources/report.html').format(css=css, html=reportHtml)
+		html = sublime.load_resource('Packages/QuickEdit/resources/report.html').format(css=css, html=reportHtml, errors=htmlErrors)
 
 		self.view.erase_phantoms('quick_edit')
 		self.view.add_phantom("quick_edit", self.view.sel()[0], html, sublime.LAYOUT_BLOCK, self.click)
