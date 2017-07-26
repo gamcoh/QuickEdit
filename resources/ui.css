@@ -428,13 +428,31 @@ p.attributs em, p.attributs b {
   color: #66D9EF;
 }
 p.files {
-  margin-bottom: 0;
+  margin-bottom: 4px;
   color: #ADABAE;
   font-size: 12px;
   margin-top: 15px;
 }
 .mt20 {
   margin-top: 20px;
+}
+p.error {
+  margin: 5px;
+}
+.var {
+  margin-top: 10px;
+}
+.monokai_red {
+  display: inline;
+  color: #F92672;
+}
+.monokai_blue {
+  display: inline;
+  color: #66D9EF;
+}
+.monokai_int {
+  display: inline;
+  color: #AE81FF;
 }
 
 

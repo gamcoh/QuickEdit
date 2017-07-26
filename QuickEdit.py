@@ -8,18 +8,48 @@ import os
 
 class QuickEditCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
-
 		# init
 		self.aErrors = []
 		self.QuickEditSetting = sublime.load_settings('QuickEdit.sublime-settings')
 
 		# getting the current line 
-		curLine    = self.view.sel()[0]
-		curLine    = self.view.line(curLine)
-		curLineTxt = self.view.substr(curLine)
-		
+		self.curRegion  = self.view.sel()[0]
+		self.curLine    = self.view.line(self.curRegion)
+		self.curLineTxt = self.view.substr(self.curLine)
+
+		# getting the current scope
+		scope = self.view.scope_name(self.curRegion.a)
+		if 'source.php' in scope and 'variable.other.php' in scope:
+			self.scope = 'php_variable'
+			# if the scope is php_variable
+			# we search in the same file (for now)
+			# where was the current variable defined.
+			# Also instead of taking the all line 
+			# we just take the wone world under mouse 
+			self.curLineTxt = self.view.substr(self.view.word(self.view.sel()[0]))
+			self.searchForVar();
+		elif 'source.php' in scope and ('meta.function-call.php' in scope or 'variable.function.php' in scope):
+			self.scope = 'php_function'
+			# if the scope is php_function
+			# we search in the current view (for now)
+			# where did this function was defined
+			self.searchForFunction()
+		else:
+			self.scope = 'html_css'
+			# if the scope is html_css we 
+			# search for the class names
+			# the id names and the styles for them 
+			self.searchForStyles()
+
+
+	########################################################################
+	# Search for the class name, the id,
+	# and the correspondant styles
+	# in different files across the folder
+	########################################################################
+	def searchForStyles(self):
 		# getting the first tag if the current line
-		firstTag = re.search('^[^<]*<(.*?)>', curLineTxt).group(1)
+		firstTag = re.search('^[^<]*<(.*?)>', self.curLineTxt).group(1)
 		
 		# search for the tag name
 		tagName = re.search('^([a-zA-Z]+)', firstTag).group(1)
@@ -28,7 +58,13 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 			return False
 
 		# first for all the class names
-		className = re.findall('class="(.*?)"', firstTag)[0].split(' ')
+		className = re.findall('class="(.*?)"', firstTag)
+		if className:
+			className = className[0].split(' ')
+		else:
+			self.aErrors.append('Could find any class name in this tag')
+
+		# search for an id
 		idName = re.findall('id="(.*?)"', firstTag)
 		if idName:
 			idName = idName[0]
@@ -70,7 +106,7 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 					with open(os.path.join(cwd, code)) as link_file:
 						code = link_file.read()
 				except FileNotFoundError as e:
-					self.aErrors.append('Can not find the file : ' + str(e).split(':')[1])
+					self.aErrors.append('Could not find the file : ' + str(e).split(':')[1])
 				# for every class name found for this tag
 				# we are gonna found the correspondant attributs
 				if className:
@@ -79,9 +115,67 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 						if cssCodes:
 							for css in cssCodes:
 								self.stylesFound.append({'code': css, 'file': file})
-
-		# Last - show the phantom with the formated css code
 		self.formatCode()
+
+
+	########################################################################
+	# Search for were the variable was defined
+	########################################################################
+	def searchForVar(self):
+		# search for the varibale definition
+		variableFormatted = '\$' + self.curLineTxt
+		varsFoundLine = self.view.find_all('(?!{0}\s?==)({0}\s?=.*)'.format(variableFormatted))
+		
+		# if the definition were not found
+		if not varsFoundLine:
+			self.aErrors.append('Could not find the definition of %s in this file' % variableFormatted.replace('\$', '$'))
+
+		# if multiple var were found
+		if len(varsFoundLine) > 1:
+			self.varsFound = {'line': str(self.view.rowcol(varsFoundLine[-1].a)[0] + 1), 'code': self.view.substr(varsFoundLine[-1])}
+		else:
+			self.varsFound = {'line': str(self.view.rowcol(varsFoundLine[0].a)[0] + 1), 'code': self.view.substr(varsFoundLine[0])}
+
+		self.formatCodeVar()
+
+	########################################################################
+	# format the code for the vars
+	########################################################################
+	def formatCodeVar(self):
+		reportHtml = '<div class="var">'
+		reportHtml += '<p class="files"><em>in this file, at line : </em><a href="line-{line}">{line}</a></p>'.format(line=self.varsFound['line'])
+
+		# format the code for a better syntax coloration
+		reportHtmlContent = re.sub('(\$|=|new|->)', '<p class="monokai_red">\g<1></p>', self.varsFound['code'])
+		reportHtmlContent = re.sub('(class)(;|,)', '<p class="monokai_blue">\g<1></p>\g<2>', reportHtmlContent)
+		reportHtmlContent = re.sub('(\[| |=)([0-9]+)(\]| |;|,)', '\g<1><p class="monokai_int">\g<2></p>\g<3>', reportHtmlContent)
+		# strings ...
+		
+		reportHtml += reportHtmlContent
+		reportHtml += '</div>'
+
+		# load the font
+		settings = sublime.load_settings('Preferences.sublime-settings')
+		font = ''
+		if settings.has('font_face'):
+			font = '"%s",' % settings.get('font_face')
+
+		# getting the errors that occured during the execution
+		htmlErrors = ''
+		if self.QuickEditSetting.get('show_errors'):
+			for e in self.aErrors:
+				htmlErrors += '<p class="error">• %s</p>' % e
+
+			# if errors were found 
+			if htmlErrors:
+				htmlErrors = '<div class="panel panel-error mt20"><div class="panel-header">Errors that occured during the search</div><div class="panel-body">{errors}</div></div>'.format(errors=htmlErrors)
+
+		# load css, and html ui
+		css = sublime.load_resource('Packages/QuickEdit/resources/ui.css').replace('@@font', font)
+		html = sublime.load_resource('Packages/QuickEdit/resources/report.html').format(css=css, html=reportHtml, errors=htmlErrors)
+
+		self.view.erase_phantoms('quick_edit')
+		self.view.add_phantom("quick_edit", self.view.sel()[0], html, sublime.LAYOUT_BLOCK, self.click)
 
 
 	########################################################################
@@ -99,8 +193,9 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 
 			reportHtml += code['code']
 
+		# no css style were found
 		if not reportHtml:
-			return False
+			self.aErrors.append('Could not find any css style')
 
 		# put minihtml tag and class name 
 		# in order to stylize the css
