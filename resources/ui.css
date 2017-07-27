@@ -454,6 +454,10 @@ p.error {
   display: inline;
   color: #AE81FF;
 }
+.monokai_string {
+  display: inline;
+  color: #E6DB74;
+}
 
 
 

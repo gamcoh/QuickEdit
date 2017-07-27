@@ -148,8 +148,8 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 		# format the code for a better syntax coloration
 		reportHtmlContent = re.sub('(\$|=|new|->)', '<p class="monokai_red">\g<1></p>', self.varsFound['code'])
 		reportHtmlContent = re.sub('(class)(;|,)', '<p class="monokai_blue">\g<1></p>\g<2>', reportHtmlContent)
-		reportHtmlContent = re.sub('(\[| |=)([0-9]+)(\]| |;|,)', '\g<1><p class="monokai_int">\g<2></p>\g<3>', reportHtmlContent)
-		# strings ...
+		reportHtmlContent = re.sub('(\[| |=|>)([0-9]+)(\]| |;|,)', '\g<1><p class="monokai_int">\g<2></p>\g<3>', reportHtmlContent)
+		# print(reportHtmlContent)
 		
 		reportHtml += reportHtmlContent
 		reportHtml += '</div>'
