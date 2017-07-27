@@ -458,7 +458,14 @@ p.error {
   display: inline;
   color: #E6DB74;
 }
-
+.monokai_green {
+  display: inline;
+  color: #A6E22E;
+}
+.monokai_params {
+  display: inline;
+  color: #FD971F;
+}
 
 
 

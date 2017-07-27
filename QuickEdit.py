@@ -33,6 +33,7 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 			# if the scope is php_function
 			# we search in the current view (for now)
 			# where did this function was defined
+			self.curLineTxt = self.view.substr(self.view.word(self.view.sel()[0]))
 			self.searchForFunction()
 		else:
 			self.scope = 'html_css'
@@ -138,6 +139,31 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 
 		self.formatCodeVar()
 
+
+	########################################################################
+	# Search for were the function was defined
+	########################################################################
+	def searchForFunction(self):
+		# search for the varibale definition
+		functionFormatted = 'function ' + self.curLineTxt
+		functionsFound = self.view.find_all('(.*{}.*)'.format(functionFormatted))
+
+		print(functionFormatted)
+		
+		# if the definition were not found
+		if not functionsFound:
+			self.aErrors.append('Could not find the definition of %s in this file' % functionFormatted)
+			self.formatCodeFunction()
+			return False
+
+		# if multiple var were found
+		if len(functionsFound) > 1:
+			self.functionFound = {'line': str(self.view.rowcol(functionsFound[-1].a)[0] + 1), 'code': self.view.substr(functionsFound[-1])}
+		else:
+			self.functionFound = {'line': str(self.view.rowcol(functionsFound[0].a)[0] + 1), 'code': self.view.substr(functionsFound[0])}
+
+		self.formatCodeFunction()
+
 	########################################################################
 	# format the code for the vars
 	########################################################################
@@ -153,6 +179,50 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 		
 		reportHtml += reportHtmlContent
 		reportHtml += '</div>'
+
+		# load the font
+		settings = sublime.load_settings('Preferences.sublime-settings')
+		font = ''
+		if settings.has('font_face'):
+			font = '"%s",' % settings.get('font_face')
+
+		# getting the errors that occured during the execution
+		htmlErrors = ''
+		if self.QuickEditSetting.get('show_errors'):
+			for e in self.aErrors:
+				htmlErrors += '<p class="error">• %s</p>' % e
+
+			# if errors were found 
+			if htmlErrors:
+				htmlErrors = '<div class="panel panel-error mt20"><div class="panel-header">Errors that occured during the search</div><div class="panel-body">{errors}</div></div>'.format(errors=htmlErrors)
+
+		# load css, and html ui
+		css = sublime.load_resource('Packages/QuickEdit/resources/ui.css').replace('@@font', font)
+		html = sublime.load_resource('Packages/QuickEdit/resources/report.html').format(css=css, html=reportHtml, errors=htmlErrors)
+
+		self.view.erase_phantoms('quick_edit')
+		self.view.add_phantom("quick_edit", self.view.sel()[0], html, sublime.LAYOUT_BLOCK, self.click)
+
+	########################################################################
+	# format the code for the functions
+	########################################################################
+	def formatCodeFunction(self):
+		try:
+			reportHtml = '<div class="function">'
+			reportHtml += '<p class="files"><em>in this file, at line : </em><a href="line-{line}">{line}</a></p>'.format(line=self.functionFound['line'])
+
+			# format the code for a better syntax coloration
+			reportHtmlContent = re.sub('(private|public|protected|return)', '<p class="monokai_red">\g<1></p>', self.functionFound['code'])
+			reportHtmlContent = re.sub('(function)', '<p class="monokai_blue"><em>\g<1></em></p>', reportHtmlContent)
+			reportHtmlContent = re.sub('(function</em></p> )([a-zA-Z0-9_]+)( ?\()', '\g<1><p class="monokai_green">\g<2></p>\g<3>', reportHtmlContent)
+			reportHtmlContent = re.sub('(function</em></p> <p class="monokai_green">customizeMessage</p>\()(.*)(\))', '\g<1><p class="monokai_params"><em>\g<2></em></p>\g<3>', reportHtmlContent)
+			reportHtmlContent = re.sub('(\{.*)(\$)(.*\})', '\g<1><p class="monokai_red"><em>\g<2></em></p>\g<3>', reportHtmlContent)
+			reportHtmlContent = re.sub('(\{.*)(->)(.*\})', '\g<1><p class="monokai_red"><em>\g<2></em></p>\g<3>', reportHtmlContent)
+			
+			reportHtml += reportHtmlContent
+			reportHtml += '</div>'
+		except AttributeError:
+			print('[Errno 2] Function not found')
 
 		# load the font
 		settings = sublime.load_settings('Preferences.sublime-settings')
