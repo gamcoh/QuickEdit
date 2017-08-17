@@ -4,8 +4,6 @@ import sublime_plugin
 import re
 import os
 
-# from bs4 import BeautifulSoup
-
 class QuickEditCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
 		# init
@@ -212,12 +210,13 @@ class QuickEditCommand(sublime_plugin.TextCommand):
 			reportHtml += '<p class="files"><em>in this file, at line : </em><a href="line-{line}">{line}</a></p>'.format(line=self.functionFound['line'])
 
 			# format the code for a better syntax coloration
-			reportHtmlContent = re.sub('(private|public|protected|return)', '<p class="monokai_red">\g<1></p>', self.functionFound['code'])
+			reportHtmlContent = re.sub('(private|public|protected)', '<p class="monokai_red">\g<1></p>', self.functionFound['code'])
 			reportHtmlContent = re.sub('(function)', '<p class="monokai_blue"><em>\g<1></em></p>', reportHtmlContent)
 			reportHtmlContent = re.sub('(function</em></p> )([a-zA-Z0-9_]+)( ?\()', '\g<1><p class="monokai_green">\g<2></p>\g<3>', reportHtmlContent)
-			reportHtmlContent = re.sub('(function</em></p> <p class="monokai_green">customizeMessage</p>\()(.*)(\))', '\g<1><p class="monokai_params"><em>\g<2></em></p>\g<3>', reportHtmlContent)
+			reportHtmlContent = re.sub('(function</em></p> <p class="monokai_green">[a-zA-Z0-9_]+</p>\()(.*)(\))', '\g<1><p class="monokai_params"><em>\g<2></em></p>\g<3>', reportHtmlContent)
 			reportHtmlContent = re.sub('(\{.*)(\$)(.*\})', '\g<1><p class="monokai_red"><em>\g<2></em></p>\g<3>', reportHtmlContent)
 			reportHtmlContent = re.sub('(\{.*)(->)(.*\})', '\g<1><p class="monokai_red"><em>\g<2></em></p>\g<3>', reportHtmlContent)
+			reportHtmlContent = re.sub('(\{.*)(return)(.*\})', '\g<1><p class="monokai_red"><em>\g<2></em></p>\g<3>', reportHtmlContent)
 			
 			reportHtml += reportHtmlContent
 			reportHtml += '</div>'
