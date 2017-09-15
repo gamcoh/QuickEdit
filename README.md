@@ -1,6 +1,8 @@
 # QuickEdit
 This is a Sublime Text package that allows you to edit css code directly into html code using the tag class names, like QuickEdit on the Brackets IDE.
 
+Since the 2nd version, the plugin also allows you to use it with php variables and functions
+
 ## Installation
 To install this plugin, you have two options:
 
