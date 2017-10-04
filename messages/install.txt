@@ -3,11 +3,11 @@ Quick Edit
 
 About
 ======
-Quick look to css style 
+Quick look to css style or php vars and functions
 
 How to Use
 ==========
-super + alt + h near a class name
+super + alt + h near a class name, or a var / function in php and the magic will appear
 
 
 Contributing
